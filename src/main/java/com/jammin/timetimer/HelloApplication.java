@@ -1,69 +1,65 @@
 package com.jammin.timetimer;
 
 import javafx.application.Application;
-import javafx.event.Event;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Arc;
-import javafx.scene.shape.StrokeType;
-import javafx.stage.Stage;
-import javafx.scene.shape.ArcType;
 import javafx.scene.paint.Color;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.Pane;
-
-import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.io.IOException;
+import javafx.scene.shape.Arc;
+import javafx.scene.shape.ArcType;
+import javafx.stage.Stage;
+import javafx.util.converter.IntegerStringConverter;
 
 public class HelloApplication extends Application {
+
     @Override
-    public void start(Stage primaryStage) throws IOException {
-        /*FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 320, 240);
-        stage.setTitle("Hello!");
-        stage.setScene(scene);
-        stage.show();*/
+    public void start(Stage PrimaryStage) {
+        ImageView myImage = new ImageView(new Image("file:img/kurupt.png"));
 
-        primaryStage.setTitle("Digital Time Timer");
+        Arc myArc = createArc();
 
-        //Layout Creation
-        VBox myLayout = new VBox();
-        Arc timerFace = new Arc();
-        TextField timeField = new TextField("Enter Timer Length (1-60min)");
-        myLayout.getChildren().add(timerFace);
-        myLayout.getChildren().add(timeField);
+        TextField myTextField = createTextField(myArc);
 
-        //Arc Specifications
-        timerFace.setLength(270);
-        timerFace.setStartAngle(90);
-        timerFace.setRadiusX(100);
-        timerFace.setRadiusY(100);
-        timerFace.setFill(Color.rgb(29, 69, 40));
-        timerFace.setStroke(Color.BLACK);
-        timerFace.setStrokeType(StrokeType.INSIDE);
-        timerFace.setType(ArcType.ROUND);
+        StackPane myStackPane = new StackPane(myImage,myArc);
 
-        //Text Field Specifications
-        timeField.setOnAction(myEvent);
+        VBox myVBox = new VBox(myStackPane, myTextField);
 
-        timeField.setOnAction((evt) -> timerFace.setLength(Double.parseDouble(timeField.getCharacters().toString())*6));
+        Scene myScene = new Scene(myVBox);
 
-        Scene myScene = new Scene(myLayout);
-
-        primaryStage.setScene(myScene);
-        primaryStage.show();
-    }
-
-    public class myEvent extends Event {
+        PrimaryStage.setScene(myScene);
+        PrimaryStage.show();
 
     }
 
-    public static void main(String[] args) {
-        launch();
+    public Arc createArc(){
+        Arc myArc = new Arc(100,100,100,100,0,360);
+        myArc.setFill(Color.GREEN);
+        myArc.setType(ArcType.ROUND);
+        return myArc;
+    }
+
+    public TextField createTextField(Arc myArc){
+        TextField myTextField = new TextField("Enter Time 1-60");
+
+        TextFormatter<Integer> myTextFormatter = new TextFormatter<>(new IntegerStringConverter(), 60, this::filter);
+
+        myTextField.setTextFormatter(myTextFormatter);
+
+        myTextField.setOnAction((evt) -> myArc.setLength(myTextFormatter.getValue()!=null ? 6*myTextFormatter.getValue():0));
+
+        return myTextField;
+    }
+
+    public TextFormatter.Change filter(TextFormatter.Change myChange){
+        if (myChange.getControlNewText().isEmpty()){
+            return myChange;
+        }
+        Integer myVal = Integer.parseInt(myChange.getControlNewText());
+
+        return myVal >=0 && myVal <= 60 ? myChange : null;
     }
 }
