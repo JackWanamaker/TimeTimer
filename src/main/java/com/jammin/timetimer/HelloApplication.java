@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.beans.InvalidationListener;
 import javafx.beans.property.ReadOnlyDoubleProperty;
 import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
@@ -25,17 +26,15 @@ public class HelloApplication extends Application {
     public void start(Stage PrimaryStage) {
         //Adds all the necessary elements into the window
 
-        StackPane myStackPane = new StackPane();
+        WebView myWebView = createSVG();
+
+        StackPane myStackPane = new StackPane(myWebView);
 
         VBox myVBox = new VBox(myStackPane);
 
-        Scene myScene = new Scene(myVBox, 400, 400);
-
-        WebView myWebView = createBackgroundImage(myStackPane);
+        Scene myScene = createScene(myVBox, myWebView);
 
         Arc myArc = createArc(myStackPane);
-
-        myStackPane.getChildren().remove(myArc);
 
         TextField myTextField = createTextField(myArc);
 
@@ -44,17 +43,14 @@ public class HelloApplication extends Application {
         PrimaryStage.setScene(myScene);
         PrimaryStage.show();
 
+        SVGString.changeSVGHeight(310.8);
+        System.out.println(SVGString.getString());
+
     }
     //Constructor for Background Image
-    public WebView createBackgroundImage(StackPane myStackPane){
+    public WebView createSVG(){
         WebView myWebView = new WebView();
-        Double svgWidth = myStackPane.getScene().getWidth();
-        Double svgHeight = myStackPane.getScene().getHeight();
-        String svgPath = getClass().getResource("/img/timer_ticks.svg").toExternalForm();
-        String svgContent = "<html><body><img src = '" + svgPath + "'></body></html>";
-        myWebView.getEngine().loadContent(svgContent);
-        //myWebView.widthProperty().bind()
-        myStackPane.getChildren().add(myWebView);
+        myWebView.getEngine().loadContent(SVGString.getString());
         return myWebView;
     }
 
@@ -65,8 +61,8 @@ public class HelloApplication extends Application {
         myArc.setType(ArcType.ROUND);
         myStackPane.getChildren().add(myArc);
 
-        myArc.radiusXProperty().bind(myArc.getScene().heightProperty().divide(2.5));
-        myArc.radiusYProperty().bind(myArc.getScene().heightProperty().divide(2.5));
+        myArc.radiusXProperty().bind(myArc.getScene().heightProperty().divide(3));
+        myArc.radiusYProperty().bind(myArc.getScene().heightProperty().divide(3));
 
         return myArc;
     }
@@ -90,5 +86,26 @@ public class HelloApplication extends Application {
         int myVal = Integer.parseInt(myChange.getControlNewText());
 
         return myVal >=0 && myVal <= 60 ? myChange : null;
+    }
+
+    public Scene createScene(VBox myVBox, WebView myWebView){
+        Scene myScene = new Scene(myVBox, 400, 400);
+        myScene.heightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
+                SVGString.changeSVGHeight(t1.doubleValue()/1.25);
+                myWebView.getEngine().loadContent(SVGString.getString());
+            }
+        });
+
+        myScene.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
+                SVGString.changeSVGWidth(t1.doubleValue()/1.25);
+                myWebView.getEngine().loadContent(SVGString.getString());
+            }
+        });
+
+        return myScene;
     }
 }
